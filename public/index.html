@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Website</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <nav>
+      <ul>
+        <li><a href="#home">Home</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+
+    <div class="main-content">
+      <h1>Welcome to My Website</h1>
+      <button id="clickMeButton">Click Me</button>
+      <div class="card-container" id="cardContainer"></div>
+    </div>
+
+    <div id="popupForm" class="popup-form">
+      <div class="form-container">
+        <span class="close-button" onclick="closeForm()">&times;</span>
+        <form id="contactForm">
+          <h2>Contact Form</h2>
+          <label for="fname">First Name:</label>
+          <input
+            type="text"
+            id="fname"
+            name="fname"
+            placeholder="Your first name..."
+          />
+
+          <label for="lname">Last Name:</label>
+          <input
+            type="text"
+            id="lname"
+            name="lname"
+            placeholder="Your last name..."
+          />
+
+          <label for="password">Password:</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Your password..."
+          />
+
+          <label for="email">Email:</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="Your email..."
+          />
+
+          <input type="submit" value="Submit" onclick="handleSubmit()" />
+        </form>
+      </div>
+    </div>
+
+    <div class="image-gallery">
+      <img
+        src="https://www.jbhifi.com.au/cdn/shop/products/621605-Product-0-I-638096365723818931_e14d2b92-f4b6-4ba5-b321-bb33da4aa899.jpg?v=1706561170"
+        alt="Image 1"
+      />
+      <img
+        src="https://cdn.shopify.com/s/files/1/0024/9803/5810/products/594250-Product-0-I-637901929377644080.jpg?v=1706561123"
+        alt="Image 2"
+      />
+      <img
+        src="https://www.jbhifi.com.au/cdn/shop/products/494989-Product-0-I-637406988736543466_2c3e4562-bfdc-4e0e-86a4-b881330254a3.jpg?v=1706561068"
+        alt="Image 3"
+      />
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+    <script>
+      function closeForm() {
+        document.getElementById("popupForm").style.display = "none";
+      }
+      async function handleSubmit() {
+        alert("Contact form submitted!");
+      }
+
+      async function fetchAndDisplayCards() {
+        try {
+          const response = await fetch("/api/cards");
+          if (response.ok) {
+            const responseData = await response.json();
+            const cards = responseData.data;
+            const cardContainer = document.getElementById("cardContainer");
+            cards.forEach((cardData) => {
+              console.log(cardData);
+              const card = document.createElement("div");
+              card.classList.add("card");
+              card.innerHTML = `
+                    <h2>${cardData.fname} ${cardData.lname}</h2>
+                    <p>Email: ${cardData.email}</p>
+                `;
+              cardContainer.appendChild(card);
+            });
+          } else {
+            console.error("Failed to fetch cards:", response.statusText);
+          }
+        } catch (error) {
+          console.error("Error fetching cards:", error);
+        }
+      }
+
+      fetchAndDisplayCards();
+      document
+        .getElementById("contactForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault();
+
+          const formData = new FormData(this);
+          const formObject = {};
+          formData.forEach((value, key) => {
+            formObject[key] = value;
+          });
+
+          try {
+            const response = await fetch("/api/cards", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(formObject),
+            });
+
+            if (response.ok) {
+              const responseData = await response.json();
+              console.log(responseData);
+              location.reload();
+            } else {
+              console.error("Failed to add new card:", response.statusText);
+            }
+          } catch (error) {
+            console.error("Error adding new card:", error);
+          }
+        });
+    </script>
+  </body>
+</html>
